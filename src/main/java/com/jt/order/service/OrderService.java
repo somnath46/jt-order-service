@@ -29,7 +29,7 @@ public class OrderService {
 		paymentDto.setOrderId(savedOrder.getId());
 		paymentDto.setAmount(savedOrder.getPrice());
 
-		PaymentDto paymentResponse = restTemplate.postForObject("http://localhost:9191/payment", paymentDto,
+		PaymentDto paymentResponse = restTemplate.postForObject("http://PAYMENT-SERVICE/payment", paymentDto,
 				PaymentDto.class);
 
 		String message = paymentResponse.getPaymentStatus().equals("success") ? "Order placed successfully"
