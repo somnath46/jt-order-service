@@ -1,6 +1,9 @@
 package com.jt.order.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,13 +15,18 @@ import com.jt.order.entity.Order;
 import com.jt.order.repository.OrderRepository;
 
 @Service
+@RefreshScope
 public class OrderService {
 
 	@Autowired
 	private RestTemplate restTemplate;
 
 	@Autowired
+	@Lazy
 	private OrderRepository orderRepository;
+	
+	@Value("${microservice.payment-service.endpoints.endpoint.uri}")
+	private String paymentEndpointUri;
 
 	public TransactionResponseDto saveOrder(TransactionRequestDto request) {
 		Order order = new Order(request.getOrder().getId(), request.getOrder().getName(), request.getOrder().getQty(),
@@ -29,9 +37,10 @@ public class OrderService {
 		paymentDto.setOrderId(savedOrder.getId());
 		paymentDto.setAmount(savedOrder.getPrice());
 
-		PaymentDto paymentResponse = restTemplate.postForObject("http://PAYMENT-SERVICE/payment", paymentDto,
+//		PaymentDto paymentResponse = restTemplate.postForObject("http://PAYMENT-SERVICE/payment", paymentDto,
+//				PaymentDto.class);
+		PaymentDto paymentResponse = restTemplate.postForObject(paymentEndpointUri, paymentDto,
 				PaymentDto.class);
-
 		String message = paymentResponse.getPaymentStatus().equals("success") ? "Order placed successfully"
 				: "Payment failed, order added to cart";
 		return new TransactionResponseDto(
